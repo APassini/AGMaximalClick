@@ -16,13 +16,13 @@
 #OU SEJA F(X) = SUM(X[i]*X[j]) PARA CASO "i" E "j" EXISTAM NAS ARESTAS
 #E F(X) = SUM(X[i]*X[j]) - N * SUM(X[i]*X[j])
 
-import numpy as npm
+import numpy as np
 import random
 
 vertices = []
 arestas = []
 
-numRepeticoes = 1
+numRepeticoes = 200
 numPopulacao = 100
 nPunitive = 5
 
@@ -49,13 +49,19 @@ def exist_edge(verticeUm, verticeDois):
     return [verticeUm, verticeDois] in arestas
 
 def crossover(individuoUm, individuoDois):
-    print("Pai 1: ", individuoUm)
-    print("Pai 2: ", individuoDois)
     crossoverPoint = random.randint(0,len(vertices) - 1)
-    for i in range(crossoverPoint, len(vertices)):
-        individuoUm[i], individuoDois[i] = individuoDois[i], individuoUm[i]
-    print("Filho 1: ", individuoUm)
-    print("Filho 2: ", individuoDois)
+    filhoUm = np.append(individuoUm[:crossoverPoint], individuoDois[crossoverPoint:])
+    filhoDois = np.append(individuoDois[:crossoverPoint], individuoUm[crossoverPoint:])
+    return filhoUm, filhoDois
+
+def mutacao(individuo):
+    if random.choice([True, False]):
+        randomNumber = random.randint(0,len(individuo)-1)
+        if individuo[randomNumber] == 1:
+            individuo[randomNumber] = 0
+        else:
+            individuo[randomNumber] = 1
+    return individuo
         
 
 def calcula_fitness(individuo):
@@ -74,7 +80,7 @@ def calcula_fitness(individuo):
 def cria_populacao(numVertices, numIndividuos):
     populacao = []
     for i in range(numIndividuos):
-        cromossomo = npm.random.choice([0, 1], size=numVertices, p=[.5, .5])
+        cromossomo = np.random.choice([0, 1], size=numVertices, p=[.5, .5])
         populacao.append(cromossomo)
     return populacao
 
@@ -87,8 +93,20 @@ def main():
             fitness = calcula_fitness(individuo)
             populacaoWithFitness.append((individuo, fitness))
         populacaoWithFitness.sort(key=takeSecond, reverse=True)
-        #print(populacaoWithFitness)
-        crossover(populacaoWithFitness[0][0], populacaoWithFitness[1][0])
+        populacaoWithFitness = populacaoWithFitness[:len(populacaoWithFitness)//2]
+        melhorIndividuo = populacaoWithFitness[0]
+        populacao = []
+        for individuo in populacaoWithFitness:
+            individuoUm, individuoDois = crossover(individuo[0], populacaoWithFitness[random.randint(0,10)][0])
+            populacao.append(individuoUm)
+            populacao.append(individuoDois)
+    for individuo in populacao:
+        fitness = calcula_fitness(individuo)
+        populacaoWithFitness.append((individuo, fitness))
+    populacaoWithFitness.sort(key=takeSecond, reverse=True)
+    populacaoWithFitness = populacaoWithFitness[:len(populacaoWithFitness)//2]
+    melhorIndividuo = populacaoWithFitness[0]
+    print(melhorIndividuo)
             
 
 if __name__ == "__main__":
